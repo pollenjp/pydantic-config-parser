@@ -12,8 +12,8 @@ __all__: list[str] = [
 
 
 try:
-    from pydantic_config_parser.yaml import load_yaml_as_json
+    from pydantic_config_parser.yaml import yaml_loads_as_json
 
-    __all__ += ["load_yaml_as_json"]
+    __all__ += ["yaml_loads_as_json"]
 except ModuleNotFoundError:
     pass

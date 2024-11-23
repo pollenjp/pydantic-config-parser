@@ -11,10 +11,6 @@ This library provides special utility when using pydantic to parse config file.
 
 #### Example 1
 
-```yaml
-a: 1
-```
-
 ```python
 from pydantic import BaseModel
 from pydantic_config_parser import recursive_override_each_fields
@@ -46,6 +42,7 @@ from pydantic_config_parser import recursive_override_each_fields
 
 class ConfigSub(BaseModel):
     a: int = 0
+    b: str = "default"
 
 class ConfigRoot(BaseModel):
     a: int = 0
@@ -70,7 +67,10 @@ config.model_dump_json()
 #   "b": "default",
 #   "c": [1, 2, 3],
 #   "d": {"a": 1, "b": 2},
-#   "e": {"a": 2}          # <- override
+#   "e": {
+#     "a": 2,             # <- override
+#     "b": "default"
+#   }
 # }
 ```
 
