@@ -23,7 +23,7 @@ jobs:
     steps:
       - name: Create a PRs message
         # https://github.com/release-drafter/release-drafter
-        uses: release-drafter/release-drafter@v5
+        uses: release-drafter/release-drafter@v6
         with:
           config-name: release-drafter-autolabel.yml
           publish: false
