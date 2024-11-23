@@ -1,13 +1,15 @@
 import datetime
-import json
+import typing as t
+from dataclasses import dataclass
 
+import pytest
 from pydantic import BaseModel
 
-from pydantic_config_parser import json_loads_as_dict
+from pydantic_config_parser import JsonValueType
 from pydantic_config_parser import recursive_override_each_fields
 
 
-class HelperClassElement(BaseModel):
+class HelperClassE(BaseModel):
     a: int = 1
     b: str = "test"
     c: list[int] = [1, 2, 3]
@@ -19,75 +21,40 @@ class HelperClassRoot(BaseModel):
     b: str = "test"
     c: list[int] = [1, 2, 3]
     d: dict[str, int] = {"a": 1, "b": 2}
-    e: HelperClassElement = HelperClassElement()
+    e: HelperClassE = HelperClassE()
     f: datetime.datetime = datetime.datetime.now(tz=datetime.UTC)
     g: bool = True
     h: float = 1.0
     i: str | None = "None"
 
 
-def test_recursive_override_each_fields_override_int():
+@dataclass
+class Param:
+    override_mapping: dict[str, JsonValueType]
+    expected_value: t.Any
+
+
+@pytest.mark.parametrize(
+    "params",
+    [
+        Param(override_mapping={"a": 2}, expected_value={"a": 2}),
+        Param(override_mapping={"b": "test2"}, expected_value={"b": "test2"}),
+        Param(override_mapping={"c": [4, 5, 6]}, expected_value={"c": [4, 5, 6]}),
+        Param(override_mapping={"d": {"c": 3, "d": 4}}, expected_value={"d": {"c": 3, "d": 4}}),
+        Param(
+            override_mapping={"e": {"a": 2}},
+            expected_value={"e": HelperClassE().model_copy(update={"a": 2})},
+        ),
+        Param(
+            override_mapping={"f": "2024-01-01T00:00:00Z"},
+            expected_value={"f": datetime.datetime(2024, 1, 1, 0, 0, tzinfo=datetime.UTC)},
+        ),
+        Param(override_mapping={"g": False}, expected_value={"g": False}),
+        Param(override_mapping={"h": 2.0}, expected_value={"h": 2.0}),
+        Param(override_mapping={"i": None}, expected_value={"i": None}),
+    ],
+)
+def test_recursive_override_each_fields(params: Param) -> None:
     base_model = HelperClassRoot()
-    override_mapping = json_loads_as_dict(json.dumps({"a": 2}))
-    result = recursive_override_each_fields(base_model, override_mapping)
-    assert result == base_model.model_copy(update={"a": 2})
-
-
-def test_recursive_override_each_fields_override_str():
-    base_model = HelperClassRoot()
-    override_mapping = json_loads_as_dict(json.dumps({"b": "test2"}))
-    result = recursive_override_each_fields(base_model, override_mapping)
-    assert result == base_model.model_copy(update={"b": "test2"})
-
-
-def test_recursive_override_each_fields_override_list():
-    base_model = HelperClassRoot()
-    override_mapping = json_loads_as_dict(json.dumps({"c": [4, 5, 6]}))
-    result = recursive_override_each_fields(base_model, override_mapping)
-    assert result == base_model.model_copy(update={"c": [4, 5, 6]})
-
-
-def test_recursive_override_each_fields_override_dict():
-    base_model = HelperClassRoot()
-    override_mapping = json_loads_as_dict(json.dumps({"d": {"c": 3, "d": 4}}))
-    result = recursive_override_each_fields(base_model, override_mapping)
-    assert result == base_model.model_copy(update={"d": {"c": 3, "d": 4}})
-
-
-def test_recursive_override_each_fields_override_sub_model():
-    base_model = HelperClassRoot()
-    override_mapping = json_loads_as_dict(json.dumps({"e": {"a": 2}}))
-    result = recursive_override_each_fields(base_model, override_mapping)
-    assert result == base_model.model_copy(
-        update={
-            "e": HelperClassElement(a=2, b=base_model.e.b, c=base_model.e.c, d=base_model.e.d),
-        }
-    )
-
-
-def test_recursive_override_each_fields_override_datetime():
-    base_model = HelperClassRoot()
-    override_mapping = json_loads_as_dict(json.dumps({"f": "2024-01-01T00:00:00Z"}))
-    result = recursive_override_each_fields(base_model, override_mapping)
-    assert result == base_model.model_copy(update={"f": datetime.datetime(2024, 1, 1, 0, 0, tzinfo=datetime.UTC)})
-
-
-def test_recursive_override_each_fields_override_bool():
-    base_model = HelperClassRoot()
-    override_mapping = json_loads_as_dict(json.dumps({"g": False}))
-    result = recursive_override_each_fields(base_model, override_mapping)
-    assert result == base_model.model_copy(update={"g": False})
-
-
-def test_recursive_override_each_fields_override_float():
-    base_model = HelperClassRoot()
-    override_mapping = json_loads_as_dict(json.dumps({"h": 2.0}))
-    result = recursive_override_each_fields(base_model, override_mapping)
-    assert result == base_model.model_copy(update={"h": 2.0})
-
-
-def test_recursive_override_each_fields_override_none():
-    base_model = HelperClassRoot()
-    override_mapping = json_loads_as_dict(json.dumps({"i": None}))
-    result = recursive_override_each_fields(base_model, override_mapping)
-    assert result == base_model.model_copy(update={"i": None})
+    result = recursive_override_each_fields(base_model, params.override_mapping)
+    assert result == base_model.model_copy(update=params.expected_value)
