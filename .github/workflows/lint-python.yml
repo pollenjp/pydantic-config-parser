@@ -15,9 +15,12 @@ jobs:
     strategy:
       matrix:
         command:
-          - cmd: ruff check
-          - cmd: pyright
-          - cmd: pytest
+          - install_cmd: uv sync --frozen
+            run_cmd: uv run ruff check
+          - install_cmd: uv sync --frozen
+            run_cmd: uv run pyright
+          - install_cmd: uv sync --frozen --all-extras
+            run_cmd: uv run pytest
     runs-on: ubuntu-latest
     steps:
       - name: Instal uv
@@ -27,6 +30,6 @@ jobs:
           echo "${HOME}/.local/bin" >> "$GITHUB_PATH"
       - uses: actions/checkout@v4
       - name: Install dependencies
-        run: uv sync --frozen
-      - name: Run ${{ matrix.command.cmd }}
-        run: uv run ${{ matrix.command.cmd }}
+        run: ${{ matrix.command.install_cmd }}
+      - name: Run ${{ matrix.command.run_cmd }}
+        run: ${{ matrix.command.run_cmd }}
