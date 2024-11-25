@@ -106,3 +106,10 @@ config.model_dump_json()
 #   "b": "test"  # <- override
 # }
 ```
+
+## Development
+
+- main .. . publish to PyPI
+  - main-pre ... publish to test PyPI
+    - dev ... latest dev branch
+      - `feature/*` ... feature branch (normal PR)
