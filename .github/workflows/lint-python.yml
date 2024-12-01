@@ -9,8 +9,6 @@ on:
       - main*
       - dev
       - release/*
-env:
-  UV_VERSION: 0.5.3
 jobs:
   python-ci:
     strategy:
@@ -24,11 +22,7 @@ jobs:
             run_cmd: uv run pytest
     runs-on: ubuntu-latest
     steps:
-      - name: Instal uv
-        run: |
-          set -eux -o pipefail -o posix
-          curl -LsSf https://astral.sh/uv/${{ env.UV_VERSION }}/install.sh | sh
-          echo "${HOME}/.local/bin" >> "$GITHUB_PATH"
+      - uses: astral-sh/setup-uv@v4
       - uses: actions/checkout@v4
       - name: Install dependencies
         run: ${{ matrix.command.install_cmd }}

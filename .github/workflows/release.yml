@@ -6,8 +6,6 @@ on:
       - main
 permissions:
   contents: read
-env:
-  UV_VERSION: 0.5.3
 defaults:
   run:
     shell: bash -eux -o pipefail {0}
@@ -47,10 +45,7 @@ jobs:
   release-build:
     runs-on: ubuntu-latest
     steps:
-      - name: Instal uv
-        run: |
-          curl -LsSf https://astral.sh/uv/${{ env.UV_VERSION }}/install.sh | sh
-          echo "${HOME}/.local/bin" >> "${GITHUB_PATH}"
+      - uses: astral-sh/setup-uv@v4
       - uses: actions/checkout@v4
       - name: Build
         run: uvx --from build pyproject-build --installer uv
